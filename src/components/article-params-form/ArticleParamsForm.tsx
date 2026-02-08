@@ -14,9 +14,10 @@ import {
 	ArticleStateType,
 } from 'src/constants/articleProps';
 
-import { useState, useEffect, useRef } from 'react'; // React хуки для управления состоянием
+import { useState, useRef } from 'react'; // React хуки для управления состоянием
 import clsx from 'clsx';
 import styles from './ArticleParamsForm.module.scss';
+import { useCloseOnOutsideClickOrEsc } from 'src/hooks/useCloseOnOutsideClickOrEsc';
 
 type ArticleParamsFormProps = {
 	isOpen: boolean; // Открыта ли форма
@@ -35,23 +36,11 @@ export const ArticleParamsForm = ({
 	const sidebarRef = useRef<HTMLElement>(null);
 
 	// Хук для закрытия при клике вне сайдбара
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				sidebarRef.current &&
-				!sidebarRef.current.contains(event.target as Node) &&
-				isOpen
-			) {
-				onToggle();
-			}
-		};
-
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
-	}, [isOpen, onToggle]);
-
+	useCloseOnOutsideClickOrEsc({
+		isOpenElement: isOpen,
+		elementRef: sidebarRef,
+		onClose: onToggle,
+	});
 	// Состояние для настроек в форме
 	const [formState, setFormState] =
 		useState<ArticleStateType>(defaultArticleState);
@@ -115,8 +104,6 @@ export const ArticleParamsForm = ({
 						placeholder='Шрифт'
 					/>
 
-					<Separator />
-
 					<RadioGroup
 						name='fontSize'
 						options={fontSizeOptions}
@@ -124,8 +111,6 @@ export const ArticleParamsForm = ({
 						onChange={handleFontSizeChange}
 						title='Размер шрифта'
 					/>
-
-					<Separator />
 
 					<Select
 						selected={formState.fontColor}
@@ -145,12 +130,9 @@ export const ArticleParamsForm = ({
 						placeholder='Цвет фона'
 					/>
 
-					<Separator />
-
-					<RadioGroup
-						name='contentWidth'
-						options={contentWidthArr}
+					<Select
 						selected={formState.contentWidth}
+						options={contentWidthArr}
 						onChange={handleContentWidthChange}
 						title='Ширина контента'
 					/>
